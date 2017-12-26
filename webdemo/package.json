@@ -1,0 +1,12 @@
+{
+  "name": "SchemeToJS",
+  "version": "0.0.1",
+  "description": "Convert Scheme to JavaScript",
+  "license": "Unlicense",
+  "main": "",
+  "dependencies": {
+    "express": "^4.13.4",
+    "jade": "^1.11.0",
+    "socket.io": "1.7.4"
+  }
+}
