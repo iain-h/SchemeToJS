@@ -22,6 +22,8 @@ $(document).ready(function() {
   editor2.innerHTML = "var hello = 'hello';";
   var aceEditor1 = ace.edit(editor1);
   var aceEditor2 = ace.edit(editor2);
+  aceEditor1.$blockScrolling = Infinity;
+  aceEditor2.$blockScrolling = Infinity;
   aceEditor1.setTheme('ace/theme/clouds');
   aceEditor1.getSession().setMode('ace/mode/scheme');
   aceEditor1.setOptions({

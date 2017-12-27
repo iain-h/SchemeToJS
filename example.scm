@@ -27,7 +27,7 @@
 (map entity:delete (part:entities))
 
 ; A map with lambda
-(map (lambda (x) (entity:delete x)) (part:entities))
+(map (lambda (x) (print "deleting")(entity:delete x)) (part:entities))
 
 (let ((x 5)(y 2)) (display "result = ") (print (+ x y)))
 

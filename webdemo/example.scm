@@ -27,7 +27,7 @@
 (map entity:delete (part:entities))
 
 ; A map with lambda
-(map (lambda (x) (entity:delete x)) (part:entities))
+(map (lambda (x) (print "deleting")(entity:delete x)) (part:entities))
 
 (let ((x 5)(y 2)) (display "result = ") (print (+ x y)))
 
@@ -42,4 +42,17 @@
 (ut_expect_error 'LOP_TWK_TOPOL_CHANGE '(smi-shell:compute smi0 ))
 
 
-(set! smi0 false)
+(set! smi0 #f)
+
+(define (vargs . args)
+	(display args)
+)
+
+(list-ref '(1 2 3 4) 2)
+
+
+(length '(the fat cat eats the thin canary))
+
+
+
+

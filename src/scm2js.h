@@ -24,6 +24,7 @@ class scheme_to_javascript : public scheme_translator {
     void apply_if(const std::list<scheme_node*>& list);
     void apply_array(const std::list<scheme_node*>& list);
     void apply_index_operator(const std::list<scheme_node*>& list);
+    void apply_length(const std::list<scheme_node*>& list);
     void apply_car(const std::list<scheme_node*>& list);
     void apply_cdr(const std::list<scheme_node*>& list);
     void apply_map(const std::list<scheme_node*>& list);

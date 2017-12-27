@@ -36,7 +36,9 @@ public:
         let_t,
         not_t,
         quote_t,
-        operator_t
+        operator_t,
+        literal_list_t,
+        length_t
         };
 
     std::list<scheme_node*> m_list;
@@ -47,7 +49,6 @@ public:
     bool is_logic_operator();
     bool returns() override;
 
-protected:
     list_type m_type;
     };
 

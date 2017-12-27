@@ -116,9 +116,9 @@ void scheme_to_javascript::apply_indented(
     if (return_node)
         m_returns.push_back(false);
 
+    new_line();
     auto it = start;
     while (it != end) {
-        new_line();
         auto next_it = it;
         next_it++;
         if (return_node == *it) {
@@ -133,6 +133,14 @@ void scheme_to_javascript::apply_indented(
         m_returns.pop_back();
     }
 
+bool is_dot(scheme_node* node) {
+    string_node* str = dynamic_cast<string_node*>(node);
+    if (str && str->m_str == ".") {
+        return true;
+    }
+    return false;
+}
+
 void scheme_to_javascript::apply_define_or_set(const std::list<scheme_node*>& list, bool is_define) {
     auto it = list.begin();
     scheme_node* a = *++it;
@@ -145,7 +153,24 @@ void scheme_to_javascript::apply_define_or_set(const std::list<scheme_node*>& li
         string_node* fname = dynamic_cast<string_node*>(lnode->m_list.front());
         if (is_define) m_buffer << "var ";
         fname->apply();
-        m_buffer << " = function(" << params(lnode->m_list) << ") {";
+        auto it2 = lnode->m_list.begin();
+        ++it2;
+        bool vargs = false;
+        if (it2 != lnode->m_list.end()) {
+            vargs = is_dot(*it2);
+        }
+        if (vargs) {
+            m_buffer << " = function() {";
+            new_line();
+            if (it2 != lnode->m_list.end()) {
+                ++it2;
+                m_buffer << "  var ";
+                (*it2)->apply();
+                m_buffer << " = Array.from(arguments);";
+            }
+        } else
+            m_buffer << " = function(" << params(lnode->m_list) << ") {";
+
         m_in_block.push_back(true);
         m_returns.push_back(true);
         new_line();
@@ -203,11 +228,38 @@ void scheme_to_javascript::apply_if(const std::list<scheme_node*>& list) {
     }
 
 void scheme_to_javascript::apply_array(const std::list<scheme_node*>& list) {
-    auto it = list.begin();
+    
+    std::list<scheme_node*> list_copy = list;
+    auto it = list_copy.begin();
+    ++it;
+    scheme_node* fname = *it;
+
+    string_node* strNode = dynamic_cast<string_node*>(fname);
+    if (strNode) {
+        std::string str = strNode->m_str;
+        if (str.compare(0, 4, "smi-") == 0 && str.find(':') != -1) {
+            ++it;
+            if (it != list_copy.end()) {
+                string_node* strNode2 = dynamic_cast<string_node*>(*it);
+                if (strNode2) {
+                    strNode->m_str = strNode2->m_str + ".";
+                    bool afterColon = false;
+                    for (size_t i = 0; i < str.length(); ++i) {
+                        if (str[i] == ':') afterColon = true;
+                        else if (afterColon) {
+                            if (str[i] == '-') strNode->m_str += '_';
+                            else strNode->m_str += str[i];
+                        }
+                    }
+                    list_copy.erase(it);
+                }
+            }
+        }
+    }
 
     m_in_block.push_back(false);
     m_buffer << "[";
-    m_buffer << params(list);
+    m_buffer << params(list_copy);
     m_buffer << "]";
     m_in_block.pop_back();
     semicolon();
@@ -219,11 +271,24 @@ void scheme_to_javascript::apply_index_operator(const std::list<scheme_node*>& l
     scheme_node* a = *++it;
     scheme_node* b = *++it;
 
-    a->apply();
     m_in_block.push_back(false);
+    a->apply();
     m_buffer << "[";
     b->apply();
     m_buffer << "]";
+    m_in_block.pop_back();
+    semicolon();
+    }
+
+void scheme_to_javascript::apply_length(const std::list<scheme_node*>& list) {
+    auto it = list.begin();
+
+    scheme_node* a = *++it;
+    scheme_node* b = *++it;
+
+    m_in_block.push_back(false);
+    a->apply();
+    m_buffer << ".length";
     m_in_block.pop_back();
     semicolon();
     }
@@ -479,20 +544,26 @@ void scheme_to_javascript::apply_bool(bool val) {
 
 void scheme_to_javascript::apply_quote(const std::list<scheme_node*>& list) {
 
+    if (list.size() != 1) return;
+
     auto it = list.begin();
 
-    if (list.size() == 1 && dynamic_cast<string_node*>(*it)) {
+    if (dynamic_cast<string_node*>(*it)) {
         m_buffer << "'";
         (*it)->apply();
         m_buffer << "'";
         }
-    else if (list.size() == 1)
-        {
-        m_buffer << "() => ";
-        (*it)->apply();
+    else {
+        list_node* lnode = dynamic_cast<list_node*>(*it);
+        if (lnode) {
+            
+            lnode->m_type = list_node::literal_list_t;
+            
         }
-    semicolon();
+        (*it)->apply();
+        semicolon();
     }
+}
 
 
 
@@ -510,6 +581,9 @@ void scheme_to_javascript::apply_list(list_node& node) {
             break;
         case list_node::index_t:
             apply_index_operator(node.m_list);
+            break;
+        case list_node::length_t:
+            apply_length(node.m_list);
             break;
         case list_node::car_t:
             apply_car(node.m_list);
@@ -543,6 +617,10 @@ void scheme_to_javascript::apply_list(list_node& node) {
             break;
         case list_node::operator_t:
             apply_operator(node.m_list);
+            break;
+        case list_node::literal_list_t:
+            node.m_list.push_front(new string_node(node.m_parent, "list"));
+            apply_array(node.m_list);
             break;
        }
     }

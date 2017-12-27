@@ -81,6 +81,20 @@ public:
     bool returns() override { return false; }
     };
 
+bool could_be_function(scheme_node* node) {
+    string_node* str = dynamic_cast<string_node*>(node);
+    if (!str)
+        return false;
+    char c = str->m_str[0];
+    if (std::isdigit(c))
+        return false;
+    if (c == '"')
+        return false;
+    if (c == '-')
+        return false;
+    return true;    
+}
+
 list_node::list_type list_node::type() {
 
     if (m_list.empty()) return unset_t;
@@ -103,7 +117,9 @@ list_node::list_type list_node::type() {
         else if (str.compare("set!") == 0 && m_list.size() > 2) m_type = set_t;
         else if (str.compare("let") == 0 && m_list.size() > 2) m_type = let_t;
         else if (str.compare("not") == 0 && m_list.size() == 2) m_type = not_t;
+        else if (str.compare("length") == 0 && m_list.size() == 2) m_type = length_t;
         else if (is_operator())  m_type = operator_t;
+        else if (!could_be_function(m_list.front())) m_type = literal_list_t;
         else  m_type = call_t;
         }
 
