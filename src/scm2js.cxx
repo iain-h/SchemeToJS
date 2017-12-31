@@ -384,8 +384,8 @@ void scheme_to_javascript::apply_let(const std::list<scheme_node*>& list) {
     if (args) {
         auto args_list = args->m_list;
         for (auto it2 = args_list.begin(); it2 != args_list.end(); ++it2) {
-            temp_args.m_list.push_back(first_item(*it2));
-            temp_values.m_list.push_back(second_item(*it2));
+            temp_args.m_list.push_back(first_item(*it2)->make_copy());
+            temp_values.m_list.push_back(second_item(*it2)->make_copy());
         }
     }
 
@@ -557,14 +557,26 @@ void scheme_to_javascript::apply_quote(const std::list<scheme_node*>& list) {
         list_node* lnode = dynamic_cast<list_node*>(*it);
         if (lnode) {
             
-            lnode->m_type = list_node::literal_list_t;
-            
+            list_node temp_list((*it)->m_parent);
+            temp_list.m_type = list_node::literal_list_t;
+            auto it2 = lnode->m_list.begin();
+            for (; it2 != lnode->m_list.end(); ++it2) {
+                if (dynamic_cast<list_node*>(*it2)) {
+                    auto temp_quote = new list_node(&temp_list);
+                    temp_quote->m_type = list_node::quote_t;
+                    temp_quote->m_list.push_back((*it2)->make_copy());
+                    temp_list.m_list.push_back(temp_quote);
+                } else {
+                    temp_list.m_list.push_back((*it2)->make_copy());
+                }
+            }
+            temp_list.apply();
+        } else {
+            (*it)->apply();
         }
-        (*it)->apply();
-        semicolon();
     }
+    semicolon();
 }
-
 
 
 void scheme_to_javascript::apply_list(list_node& node) {

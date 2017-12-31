@@ -53,6 +53,6 @@
 
 (length '(the fat cat eats the thin canary))
 
-
+(diplay '( (1 2) (3 4)))
 
 

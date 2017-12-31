@@ -14,6 +14,7 @@ public:
     virtual ~scheme_node() {}
     virtual void apply() = 0;
     virtual bool returns() = 0;
+    virtual scheme_node* make_copy() = 0;
     };
 
 class list_node : public scheme_node {
@@ -43,11 +44,13 @@ public:
 
     std::list<scheme_node*> m_list;
     list_node(scheme_node* parent) : scheme_node(parent), m_type(unset_t) {}
+    ~list_node();
     virtual list_type type();
     void apply() override;
     bool is_operator();
     bool is_logic_operator();
     bool returns() override;
+    scheme_node* make_copy() override;
 
     list_type m_type;
     };
@@ -58,6 +61,7 @@ public:
     string_node(scheme_node* parent, std::string str) : scheme_node(parent), m_str(str) {}
     void apply() override;
     bool returns() override { return true; }
+    scheme_node* make_copy() override;
     };
 
 class comment_node : public scheme_node {
@@ -66,6 +70,7 @@ public:
     comment_node(scheme_node* parent, std::string str) : scheme_node(parent), m_str(str) {}
     void apply() override;
     bool returns() override { return false; }
+    scheme_node* make_copy() override;
     };
 
 class quote_node : public list_node {

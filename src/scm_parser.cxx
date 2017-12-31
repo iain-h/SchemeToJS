@@ -2,6 +2,7 @@
 #include "scm_parser.h"
 #include <iostream>
 #include <map>
+#include <memory>
 
 using namespace std;
 
@@ -39,6 +40,10 @@ bool is_logic_operator(const string& str) {
     return false;
     }
 
+scheme_node* string_node::make_copy() {
+    return new string_node(*this);
+}
+
 void string_node::apply() {
 
     if (m_str.compare(0, 1, "\"") == 0) {
@@ -63,6 +68,10 @@ void comment_node::apply() {
     m_translator->apply_comment(m_str);
     }
 
+scheme_node* comment_node::make_copy() {
+    return new comment_node(*this);
+}
+
 list_node::list_type quote_node::type() {
     m_type = quote_t;
     return m_type;
@@ -73,12 +82,22 @@ public:
     std::list<scheme_node*> m_list;
     root_node(scheme_translator* parent) : scheme_node(parent) {}
 
+    ~root_node() {
+        for (auto n : m_list) {
+            delete n;
+            }
+    }
+
     void apply() override {
         for (auto n : m_list) {
             n->apply();
             }
         }
     bool returns() override { return false; }
+private:
+    scheme_node* make_copy() override {
+        return nullptr;
+    }
     };
 
 bool could_be_function(scheme_node* node) {
@@ -93,6 +112,20 @@ bool could_be_function(scheme_node* node) {
     if (c == '-')
         return false;
     return true;    
+}
+
+list_node::~list_node() {
+    for (auto n : m_list) {
+        delete n;
+    }
+}
+
+scheme_node* list_node::make_copy() {
+    list_node* copy = new list_node(m_parent);
+    for (auto n : m_list) {
+        copy->m_list.push_back(n->make_copy());
+    }
+    return copy;
 }
 
 list_node::list_type list_node::type() {
@@ -332,7 +365,7 @@ root_node* scheme_translator::build_syntax_tree(std::stringstream& buffer) {
 
 void scheme_translator::translate(stringstream& in_buffer) {
 
-    root_node* root = build_syntax_tree(in_buffer);
+    std::unique_ptr<root_node> root(build_syntax_tree(in_buffer));
 
     root->apply();
     }
