@@ -29,6 +29,7 @@ public:
         index_t,
         car_t,
         cdr_t,
+        cadr_t,
         map_t,
         lambda_t,
         begin_t,

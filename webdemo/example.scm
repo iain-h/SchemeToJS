@@ -20,8 +20,12 @@
 (define c (list (list 1 2) ;comment
 (list 3 4) (list 5 6)))
 
-; A car
+; car, cdr cadr
 (car (cdr c))
+
+(car (cadr c))
+
+(set! c '( ( 1 2) (3 4) ( 5 6)))
 
 ; A map
 (map entity:delete (part:entities))

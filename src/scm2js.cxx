@@ -186,9 +186,10 @@ void scheme_to_javascript::apply_define_or_set(const std::list<scheme_node*>& li
         if (is_define) m_buffer << "var ";
         a->apply();
         m_buffer << " = ";
+        m_in_block.push_back(false);
         b->apply();
-        if (!lnode)
-            semicolon();
+        m_in_block.pop_back();
+        semicolon();
         }
     }
 
@@ -313,6 +314,16 @@ void scheme_to_javascript::apply_cdr(const std::list<scheme_node*>& list) {
     semicolon();
     }
 
+void scheme_to_javascript::apply_cadr(const std::list<scheme_node*>& list) {
+    auto it = list.begin();
+    scheme_node* a = *++it;
+    m_in_block.push_back(false);
+    a->apply();
+    m_buffer << "[1]";
+    m_in_block.pop_back();
+    semicolon();
+    }
+
 void scheme_to_javascript::apply_map(const std::list<scheme_node*>& list) {
     auto it = list.begin();
     assert(list.size() == 3);
@@ -407,9 +418,15 @@ void scheme_to_javascript::apply_not(const std::list<scheme_node*>& list) {
     scheme_node* a = *++it;
     list_node* lnode = dynamic_cast<list_node*>(a);
     if (lnode && lnode->is_operator()) {
-        m_buffer << "!(";
-        a->apply();
-        m_buffer << ")";
+        string_node* op = dynamic_cast<string_node*>(*lnode->m_list.begin());
+        if (op && op->m_str == "=") {
+            op->m_str = "!==";
+            apply_operator(lnode->m_list);
+        } else {
+            m_buffer << "!(";
+            a->apply();
+            m_buffer << ")";
+        }
         }
     else {
         m_buffer << "!";
@@ -602,6 +619,9 @@ void scheme_to_javascript::apply_list(list_node& node) {
             break;
         case list_node::cdr_t:
             apply_cdr(node.m_list);
+            break;
+        case list_node::cadr_t:
+            apply_cadr(node.m_list);
             break;
         case list_node::map_t:
             apply_map(node.m_list);

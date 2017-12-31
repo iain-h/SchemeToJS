@@ -144,6 +144,7 @@ list_node::list_type list_node::type() {
         else if (str.compare("list-ref") == 0 && m_list.size() == 3) m_type = index_t;
         else if (str.compare("car") == 0 && m_list.size() == 2) m_type = car_t;
         else if (str.compare("cdr") == 0 && m_list.size() == 2) m_type = cdr_t;
+        else if (str.compare("cadr") == 0 && m_list.size() == 2) m_type = cadr_t;
         else if (str.compare("map") == 0 && m_list.size() == 3) m_type = map_t;
         else if (str.compare("lambda") == 0 && m_list.size() >= 3) m_type = lambda_t;
         else if (str.compare("begin") == 0 && m_list.size() > 1) m_type = begin_t;
@@ -195,6 +196,7 @@ bool list_node::returns() {
             { index_t, true },
             { car_t, true },
             { cdr_t, true },
+            { cadr_t, true },
             { map_t, false },
             { lambda_t, true },
             { begin_t, false },
