@@ -63,6 +63,11 @@ void string_node::apply() {
         }
     }
 
+bool string_node::returns() {
+    if (m_str == "\n") return false;
+    return true;
+}
+
 void comment_node::apply() {
 
     m_translator->apply_comment(m_str);
@@ -145,6 +150,7 @@ list_node::list_type list_node::type() {
         else if (str.compare("car") == 0 && m_list.size() == 2) m_type = car_t;
         else if (str.compare("cdr") == 0 && m_list.size() == 2) m_type = cdr_t;
         else if (str.compare("cadr") == 0 && m_list.size() == 2) m_type = cadr_t;
+        else if (str.compare("cons") == 0 && m_list.size() == 3) m_type = cons_t;
         else if (str.compare("map") == 0 && m_list.size() == 3) m_type = map_t;
         else if (str.compare("lambda") == 0 && m_list.size() >= 3) m_type = lambda_t;
         else if (str.compare("begin") == 0 && m_list.size() > 1) m_type = begin_t;
@@ -197,6 +203,7 @@ bool list_node::returns() {
             { car_t, true },
             { cdr_t, true },
             { cadr_t, true },
+            { cons_t, true },
             { map_t, false },
             { lambda_t, true },
             { begin_t, false },
@@ -234,6 +241,11 @@ void add_string_node(string& str, scheme_node* cur_node) {
     add_node(cur_node, new_string);
     }
 
+void add_new_line(scheme_node* cur_node) {
+    string_node* new_string = new string_node(cur_node, "\n");
+    add_node(cur_node, new_string);
+    }
+
 void add_comment_node(string& str, scheme_node* cur_node) {
     comment_node* new_comment = new comment_node(cur_node, str);
     add_node(cur_node, new_comment);
@@ -263,10 +275,14 @@ bool white_space(int c) {
         return true;
     if (c == '\r')
         return true;
+    return false;
+    }
+
+bool new_line(int c) {
     if (c == '\n')
         return true;
     return false;
-    }
+}
 
 void read_string(stringstream& buffer, string& token) {
     char c = buffer.get();
@@ -294,6 +310,9 @@ string next_token(stringstream& buffer) {
     if (special_char(c) || c == EOF)
         return token;
 
+    if (new_line(c))
+        return token;
+
     if (c == '"') {
         read_string(buffer, token);
         return token;
@@ -311,7 +330,7 @@ string next_token(stringstream& buffer) {
         }
 
     c = buffer.get();
-    while (!white_space(c) && !special_char(c) && c != EOF) {
+    while (!white_space(c) && !new_line(c) && !special_char(c) && c != EOF) {
         token += c;
         c = buffer.get();
         }
@@ -327,6 +346,7 @@ root_node* scheme_translator::build_syntax_tree(std::stringstream& buffer) {
 
     root_node* root = new root_node(this);
     scheme_node* cur_node = root;
+    int prev = 0;
     while (token[0] != EOF) {
 
         if (token[0] == '(') {
@@ -343,6 +363,10 @@ root_node* scheme_translator::build_syntax_tree(std::stringstream& buffer) {
         else if (token[0] == ';') {
             add_comment_node(token, cur_node);
             }
+        else if (new_line(token[0])) {
+            if (new_line(prev))
+                add_new_line(cur_node);
+            }
         else {
             add_string_node(token, cur_node);
             if (dynamic_cast<quote_node*>(cur_node))
@@ -354,6 +378,7 @@ root_node* scheme_translator::build_syntax_tree(std::stringstream& buffer) {
             break;
             }
 
+        prev = token[0];
         //std::cout << token << "\n";
         token = next_token(buffer);
         }

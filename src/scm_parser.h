@@ -30,6 +30,7 @@ public:
         car_t,
         cdr_t,
         cadr_t,
+        cons_t,
         map_t,
         lambda_t,
         begin_t,
@@ -61,7 +62,7 @@ public:
     std::string m_str;
     string_node(scheme_node* parent, std::string str) : scheme_node(parent), m_str(str) {}
     void apply() override;
-    bool returns() override { return true; }
+    bool returns() override;
     scheme_node* make_copy() override;
     };
 

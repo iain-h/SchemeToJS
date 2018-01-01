@@ -27,6 +27,8 @@
 
 (set! c '( ( 1 2) (3 4) ( 5 6)))
 
+(cons c '("stuff"))
+
 ; A map
 (map entity:delete (part:entities))
 

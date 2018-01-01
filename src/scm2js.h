@@ -28,6 +28,7 @@ class scheme_to_javascript : public scheme_translator {
     void apply_car(const std::list<scheme_node*>& list);
     void apply_cdr(const std::list<scheme_node*>& list);
     void apply_cadr(const std::list<scheme_node*>& list);
+    void apply_cons(const std::list<scheme_node*>& list);
     void apply_map(const std::list<scheme_node*>& list);
     void apply_lambda(const std::list<scheme_node*>& list);
     void apply_begin(const std::list<scheme_node*>& list);

@@ -29,9 +29,8 @@ void scheme_to_javascript::semicolon() {
 
 void scheme_to_javascript::apply_identifier(const std::string& str) {
 
-    if (str.length() == 1) {
-        // Probably an operator.
-        m_buffer << str;
+    if (str.length() == 1 && str[0] == '\n') {
+        new_line();
         return;
         }
 
@@ -320,6 +319,20 @@ void scheme_to_javascript::apply_cadr(const std::list<scheme_node*>& list) {
     m_in_block.push_back(false);
     a->apply();
     m_buffer << "[1]";
+    m_in_block.pop_back();
+    semicolon();
+    }
+
+void scheme_to_javascript::apply_cons(const std::list<scheme_node*>& list) {
+    auto it = list.begin();
+    scheme_node* a = *++it;
+    scheme_node* b = *++it;
+    m_in_block.push_back(false);
+    m_buffer << "[";
+    a->apply();
+    m_buffer << ", ";
+    b->apply();
+    m_buffer << "]";
     m_in_block.pop_back();
     semicolon();
     }
@@ -622,6 +635,9 @@ void scheme_to_javascript::apply_list(list_node& node) {
             break;
         case list_node::cadr_t:
             apply_cadr(node.m_list);
+            break;
+        case list_node::cons_t:
+            apply_cons(node.m_list);
             break;
         case list_node::map_t:
             apply_map(node.m_list);

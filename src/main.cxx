@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
         std::string line;
         if (myfile.is_open()) {
             while ( getline (myfile, line) ) {
-            aString << line << '\n';
+                aString << line << "\n";
             }
             myfile.close();
         }
@@ -28,10 +28,10 @@ int main(int argc, char *argv[]) {
 
     if (aString.str().empty()) {
         char tempChar;
-        while (!cin.eof())
-        {
-            cin.get(tempChar);
-            aString << tempChar;
+        while (!cin.eof()) {
+            if(cin.get(tempChar)) {
+                aString << tempChar;
+            }   
         }
     }
 
