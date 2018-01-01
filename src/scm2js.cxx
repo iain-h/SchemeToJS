@@ -578,7 +578,7 @@ void scheme_to_javascript::apply_bool(bool val) {
 void scheme_to_javascript::apply_quote(const std::list<scheme_node*>& list) {
 
     if (list.size() != 1) return;
-
+    m_in_block.push_back(false);
     auto it = list.begin();
 
     if (dynamic_cast<string_node*>(*it)) {
@@ -608,6 +608,7 @@ void scheme_to_javascript::apply_quote(const std::list<scheme_node*>& list) {
             (*it)->apply();
         }
     }
+    m_in_block.pop_back();
     semicolon();
 }
 

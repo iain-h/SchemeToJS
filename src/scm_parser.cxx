@@ -374,7 +374,7 @@ root_node* scheme_translator::build_syntax_tree(std::stringstream& buffer) {
             }
 
         if (!cur_node) {
-            error = "Parsing error!";
+            error = "// ** Parsing error!";
             break;
             }
 
@@ -384,7 +384,7 @@ root_node* scheme_translator::build_syntax_tree(std::stringstream& buffer) {
         }
 
     if (error.empty() && cur_node != root)
-        error = "Unexpected end of input!";
+        error = "// ** Unexpected end of input!";
 
     std::cout << error << "\n";
     return root;
