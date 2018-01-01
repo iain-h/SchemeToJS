@@ -29,7 +29,7 @@ void scheme_to_javascript::semicolon() {
 
 void scheme_to_javascript::apply_identifier(const std::string& str) {
 
-    if (str.length() == 1 && str[0] == '\n') {
+    if (str.length() == 1 && str[0] == '\n' && m_in_block.back()) {
         new_line();
         return;
         }
@@ -58,6 +58,9 @@ public:
     };
 
 bool is_comment(scheme_node* node) {
+    string_node* str = dynamic_cast<string_node*>(node);
+    if (str && str->m_str == "\n")
+        return true;
     return dynamic_cast<comment_node*>(node) != nullptr;
     }
 
